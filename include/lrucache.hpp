@@ -73,12 +73,12 @@ public:
         return _cache_items_map.find(key) != _cache_items_map.end();
     }
 
-    std::pair<bool, typename key_value_pair_t::second_type> exists(const key_t& key){
+    auto exists(const key_t& key){
         if(auto it = _cache_items_map.find(key);it!=_cache_items_map.end()){
             _cache_items_list.splice(_cache_items_list.begin(),_cache_items_list,it->second);
-            return it->second->second;
+            return std::make_pair(true,it->second);
         }
-        return {false,{}};
+        return std::make_pair(false, std::end(_cache_items_list));
     }
 
     size_t size() const {
