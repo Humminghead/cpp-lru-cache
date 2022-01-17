@@ -73,6 +73,14 @@ public:
         return _cache_items_map.find(key) != _cache_items_map.end();
     }
 
+    auto exists(const key_t& key){
+        if(auto it = _cache_items_map.find(key);it!=_cache_items_map.end()){
+            _cache_items_list.splice(_cache_items_list.begin(),_cache_items_list,it->second);
+            return std::make_pair(true,it->second);
+        }
+        return std::make_pair(false, std::end(_cache_items_list));
+    }
+
     size_t size() const {
         return _cache_items_map.size();
     }
