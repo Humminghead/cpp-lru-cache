@@ -5,8 +5,8 @@
 #include <numeric>
 #include <random>
 
-const int NUM_OF_TEST2_RECORDS = 100;
-const int TEST2_CACHE_CAPACITY = 50;
+const int NUM_OF_TEST2_RECORDS = 1'000'000;
+const int TEST2_CACHE_CAPACITY = 500'000;
 
 TEST(CacheTest, SimplePut) {
     cache::lru_cache<int, int> cache_lru(1);

@@ -21,7 +21,7 @@ class lru_cache {
     static constexpr size_t empty_element = 1;
 public:    
     using key_value_pair_t =  typename std::pair<key_t, value_t> ;
-    using container_list_t = std::list<key_value_pair_t>;
+    using container_list_t =  typename std::list<key_value_pair_t>;
     using list_iterator_t  =  typename container_list_t::iterator ;    
 
 private:
@@ -51,20 +51,13 @@ public:
         }
     }
 
-    void put(key_t&& key, value_t&& value) {
+    void put(const key_t& key, value_t&& value) {
         if (map_iterator_t it = _cache_items_map.find(key); it != std::end(_cache_items_map)) {
-            std::swap(_cache_items_list.front().first, it->second->first);
-            std::swap(_cache_items_list.front().second,it->second->second);
-            _cache_items_list.front().second  = std::forward<value_t>(value);
-
-            // No elements are copied or moved, only the internal pointers of the list nodes are re-pointed.
-            if (auto lst_begin_it = std::begin(_cache_items_list),next_after_begin = ++lst_begin_it;
-                lst_begin_it != std::end(_cache_items_list)) {
-              _cache_items_list.splice(next_after_begin, _cache_items_list, it->second);
-            }
-            _cache_items_map[key] = _cache_items_list.begin();
+            _cache_items_list.erase(it->second);
+            _cache_items_map.erase(it);
+            this->put(key, std::forward<value_t>(value));
         } else{
-            _cache_items_list.push_front(key_value_pair_t{std::forward<key_t>(key), std::forward<value_t>(value)});
+            _cache_items_list.push_front(key_value_pair_t{key, std::forward<value_t>(value)});
             _cache_items_map[key] = _cache_items_list.begin();
 
             if (_cache_items_map.size() > _max_size) {
@@ -79,7 +72,7 @@ public:
     const value_t& get(const key_t& key) {
         auto it = _cache_items_map.find(key);
         if (it == _cache_items_map.end()) {
-            throw std::range_error("There is no such key " + std::to_string(key) +  " in cache");
+            throw std::range_error("There is no such key in cache");
         } else {
             _cache_items_list.splice(_cache_items_list.begin(), _cache_items_list, it->second);
             return (it->second->second);
@@ -88,16 +81,10 @@ public:
 
     void erase(const key_t& key) {        
         if (map_iterator_t it = _cache_items_map.find(key); it == _cache_items_map.end()) {
-            throw std::range_error("There is no such key " + std::to_string(key) +  " in cache");
-        } else {            
-            std::swap(_cache_items_list.back().first, it->second->first);
-            std::swap(_cache_items_list.back().second, it->second->second);
-            _cache_items_list.pop_back();
+            throw std::range_error("There is no such key in cache");
+        } else {                        
+            _cache_items_list.erase(it->second);
             _cache_items_map.erase(it);
-            //Re-point nodes
-            _cache_items_list.splice(std::end(_cache_items_list), _cache_items_list, it->second);
-
-            _cache_items_map[it->second->first] = it->second;
         }
     }
 
